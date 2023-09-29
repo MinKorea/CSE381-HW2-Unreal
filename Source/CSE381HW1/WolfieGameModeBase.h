@@ -14,4 +14,5 @@ class CSE381HW1_API AWolfieGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
 	
+	virtual void StartPlay() override;
 };
