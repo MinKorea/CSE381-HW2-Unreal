@@ -2,12 +2,14 @@
 
 
 #include "PlayerProjectile.h"
+#include "MainCharacter.h"
+
 
 // Sets default values
 APlayerProjectile::APlayerProjectile()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+    // Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+    PrimaryActorTick.bCanEverTick = true;
 
     if (!RootComponent)
     {
@@ -63,21 +65,21 @@ APlayerProjectile::APlayerProjectile()
     }
 
     // Delete the projectile after 3 seconds.
-    InitialLifeSpan = 3.0f;
+    // InitialLifeSpan = 3.0f;
 
 }
 
 // Called when the game starts or when spawned
 void APlayerProjectile::BeginPlay()
 {
-	Super::BeginPlay();
-	
+    Super::BeginPlay();
+
 }
 
 // Called every frame
 void APlayerProjectile::Tick(float DeltaTime)
 {
-	Super::Tick(DeltaTime);
+    Super::Tick(DeltaTime);
 
 }
 
@@ -90,9 +92,17 @@ void APlayerProjectile::FireInDirection(const FVector& ShootDirection)
 // Function that is called when the projectile hits something.
 void APlayerProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (OtherActor != this && OtherComponent->IsSimulatingPhysics())
+    if (Cast<AMainCharacter>(OtherActor))
+    {
+        Destroy();
+    }
+    else if (OtherActor != this && OtherComponent->IsSimulatingPhysics())
     {
         OtherComponent->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
     }
-    Destroy();
+    
+    /*else
+    {
+        Destroy();
+    }*/
 }

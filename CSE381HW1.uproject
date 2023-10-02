@@ -28,10 +28,6 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
-		},
-		{
-			"Name": "LiveLink",
-			"Enabled": true
 		}
 	]
 }

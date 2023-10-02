@@ -3,6 +3,9 @@
 
 #include "MainCharacter.h"
 
+bool bHaveBall = false;
+APlayerProjectile* Ball;
+
 // Sets default values
 AMainCharacter::AMainCharacter()
 {
@@ -38,6 +41,10 @@ AMainCharacter::AMainCharacter()
 
 	// The owning player doesn't see the regular (third-person) body mesh.
 	GetMesh()->SetOwnerNoSee(true);
+
+	// Event called when component hits something.
+	GetMesh()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnHit);
+
 }
 
 // Called when the game starts or when spawned
@@ -99,10 +106,53 @@ void AMainCharacter::StopJump()
 	bPressedJump = false;
 }
 
+void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if(true)
+	// if (APlayerProjectile* HitActor = Cast<APlayerProjectile>(OtherActor))
+	{
+		if (!bHaveBall)
+		{
+			bHaveBall = true;
+
+			UWorld* World = GetWorld();
+			if (World)
+			{
+				// Get the camera transform.
+				FVector CameraLocation;
+				FRotator CameraRotation;
+				GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+				// Set MuzzleOffset to spawn projectiles slightly in front of the camera.
+				MuzzleOffset.Set(100.0f, 50.0f, -50.0f);
+
+				// Transform MuzzleOffset from camera space to world space.
+				FVector MuzzleLocation = CameraLocation + FTransform(CameraRotation).TransformVector(MuzzleOffset);
+
+				// Skew the aim to be slightly upwards.
+				FRotator MuzzleRotation = CameraRotation;
+				MuzzleRotation.Pitch += 10.0f;
+
+				FActorSpawnParameters SpawnParams;
+				SpawnParams.Owner = this;
+				SpawnParams.Instigator = GetInstigator();
+
+				// Spawn the projectile at the muzzle.
+				Ball = World->SpawnActor<APlayerProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
+
+				if (Ball)
+				{
+					Ball->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(MuzzleLocation, MuzzleRotation);
+				}
+			}
+		}	
+	}
+}
+
 void AMainCharacter::Fire()
 {
 	// Attempt to fire a projectile.
-	if (ProjectileClass)
+	if (ProjectileClass && bHaveBall)
 	{
 		// Get the camera transform.
 		FVector CameraLocation;
@@ -110,7 +160,7 @@ void AMainCharacter::Fire()
 		GetActorEyesViewPoint(CameraLocation, CameraRotation);
 
 		// Set MuzzleOffset to spawn projectiles slightly in front of the camera.
-		MuzzleOffset.Set(100.0f, 0.0f, 0.0f);
+		MuzzleOffset.Set(100.0f, 50.0f, -50.0f);	
 
 		// Transform MuzzleOffset from camera space to world space.
 		FVector MuzzleLocation = CameraLocation + FTransform(CameraRotation).TransformVector(MuzzleOffset);
@@ -133,6 +183,8 @@ void AMainCharacter::Fire()
 				// Set the projectile's initial trajectory.
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
+				bHaveBall = false; // added code
+				Ball->Destroy();   // added code
 			}
 		}
 	}
