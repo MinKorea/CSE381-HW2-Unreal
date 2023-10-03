@@ -2,6 +2,7 @@
 
 
 #include "MainCharacter.h"
+#include "PlayerProjectile.h"
 
 bool bHaveBall = false;
 APlayerProjectile* Ball;
@@ -35,6 +36,13 @@ AMainCharacter::AMainCharacter()
 	// Attach the FPS mesh to the FPS camera.
 	FPSMesh->SetupAttachment(FPSCameraComponent);
 
+	// Event called when component hits something.
+	HitCapsule = GetCapsuleComponent();
+	HitCapsule->BodyInstance.SetCollisionProfileName(TEXT("MainCharacter"));
+	HitCapsule->OnComponentHit.AddDynamic(this, &AMainCharacter::OnHit);
+	/*GetCapsuleComponent()->BodyInstance.SetCollisionProfileName(TEXT("MainCharacter"));
+	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnHit);*/
+
 	// Disable some environmental shadows to preserve the illusion of having a single mesh.
 	FPSMesh->bCastDynamicShadow = false;
 	FPSMesh->CastShadow = false;
@@ -42,15 +50,13 @@ AMainCharacter::AMainCharacter()
 	// The owning player doesn't see the regular (third-person) body mesh.
 	GetMesh()->SetOwnerNoSee(true);
 
-	// Event called when component hits something.
-	GetMesh()->OnComponentHit.AddDynamic(this, &AMainCharacter::OnHit);
-
 }
 
 // Called when the game starts or when spawned
 void AMainCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+	
 	
 }
 
@@ -108,9 +114,12 @@ void AMainCharacter::StopJump()
 
 void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if(true)
-	// if (APlayerProjectile* HitActor = Cast<APlayerProjectile>(OtherActor))
+	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit Something"));
+
+	if (APlayerProjectile* HitActor = Cast<APlayerProjectile>(OtherActor))
 	{
+		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit the projectile"));
+
 		if (!bHaveBall)
 		{
 			bHaveBall = true;
@@ -152,7 +161,8 @@ void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 void AMainCharacter::Fire()
 {
 	// Attempt to fire a projectile.
-	if (ProjectileClass && bHaveBall)
+	// if (ProjectileClass && bHaveBall)
+	if (ProjectileClass)
 	{
 		// Get the camera transform.
 		FVector CameraLocation;
@@ -180,11 +190,13 @@ void AMainCharacter::Fire()
 			APlayerProjectile* Projectile = World->SpawnActor<APlayerProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
 			if (Projectile)
 			{
+				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Fire!"));
+
 				// Set the projectile's initial trajectory.
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
 				bHaveBall = false; // added code
-				Ball->Destroy();   // added code
+				// Ball->Destroy();   // added code
 			}
 		}
 	}

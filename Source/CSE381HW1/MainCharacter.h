@@ -58,6 +58,9 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
 	USkeletalMeshComponent* FPSMesh;
 
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UCapsuleComponent* HitCapsule;
+
 	// Function that is called when the player hits something.
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);

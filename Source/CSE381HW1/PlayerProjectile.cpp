@@ -96,7 +96,7 @@ void APlayerProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
     {
         Destroy();
     }
-    else if (OtherActor != this && OtherComponent->IsSimulatingPhysics())
+    if (OtherActor != this && OtherComponent->IsSimulatingPhysics())
     {
         OtherComponent->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
     }
