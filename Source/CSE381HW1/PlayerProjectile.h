@@ -23,11 +23,15 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
+	// True if the projectile is owend by a character
+	bool owned = false;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Sphere collision component.
+	// UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Projectile)
 	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
+	
 	USphereComponent* CollisionComponent;
 
 	// Projectile movement component.

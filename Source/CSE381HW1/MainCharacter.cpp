@@ -4,7 +4,6 @@
 #include "MainCharacter.h"
 #include "PlayerProjectile.h"
 
-bool bHaveBall = false;
 APlayerProjectile* Ball;
 
 // Sets default values
@@ -65,6 +64,20 @@ void AMainCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	if (bHaveBall)
+	{
+		// Get the camera transform.
+		FVector CameraLocation;
+		FRotator CameraRotation;
+		GetActorEyesViewPoint(CameraLocation, CameraRotation);
+
+		MuzzleOffset.Set(150.0f, 50.0f, -50.0f);
+		FVector MuzzleLocation = CameraLocation + FTransform(CameraRotation).TransformVector(MuzzleOffset);
+
+		Ball->SetActorLocation(MuzzleLocation);
+		
+	}
+
 }
 
 // Called to bind functionality to input
@@ -114,11 +127,11 @@ void AMainCharacter::StopJump()
 
 void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-	GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit Something"));
+	// GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit Something"));
 
 	if (APlayerProjectile* HitActor = Cast<APlayerProjectile>(OtherActor))
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit the projectile"));
+		// GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit the projectile"));
 
 		if (!bHaveBall)
 		{
@@ -144,15 +157,13 @@ void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 
 				FActorSpawnParameters SpawnParams;
 				SpawnParams.Owner = this;
-				SpawnParams.Instigator = GetInstigator();
-
+				// SpawnParams.Instigator = GetInstigator(); 
 				// Spawn the projectile at the muzzle.
 				Ball = World->SpawnActor<APlayerProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
-
-				if (Ball)
-				{
-					Ball->GetRootComponent()->SetWorldLocationAndRotationNoPhysics(MuzzleLocation, MuzzleRotation);
-				}
+				Ball->ProjectileMovementComponent->InitialSpeed = 0.0f;
+				Ball->ProjectileMovementComponent->ProjectileGravityScale = 0.0f;
+				Ball->ProjectileMovementComponent->Velocity = Ball->ProjectileMovementComponent->Velocity * 0;
+				HitActor->Destroy();
 			}
 		}	
 	}
@@ -162,7 +173,7 @@ void AMainCharacter::Fire()
 {
 	// Attempt to fire a projectile.
 	// if (ProjectileClass && bHaveBall)
-	if (ProjectileClass)
+	if (ProjectileClass && bHaveBall)
 	{
 		// Get the camera transform.
 		FVector CameraLocation;
@@ -190,13 +201,13 @@ void AMainCharacter::Fire()
 			APlayerProjectile* Projectile = World->SpawnActor<APlayerProjectile>(ProjectileClass, MuzzleLocation, MuzzleRotation, SpawnParams);
 			if (Projectile)
 			{
-				GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Fire!"));
+				// GEngine->AddOnScreenDebugMessage(-1, 1.0f, FColor::Yellow, TEXT("Fire!"));
 
 				// Set the projectile's initial trajectory.
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
 				bHaveBall = false; // added code
-				// Ball->Destroy();   // added code
+				Ball->Destroy();   // added code
 			}
 		}
 	}

@@ -3,6 +3,7 @@
 
 #include "PlayerProjectile.h"
 #include "MainCharacter.h"
+#include "Engine/Engine.h"
 
 
 // Sets default values
@@ -22,8 +23,10 @@ APlayerProjectile::APlayerProjectile()
         CollisionComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
         // Set the sphere's collision profile name to "Projectile".
         CollisionComponent->BodyInstance.SetCollisionProfileName(TEXT("Projectile"));
+
         // Event called when component hits something.
         CollisionComponent->OnComponentHit.AddDynamic(this, &APlayerProjectile::OnHit);
+        
         // Set the sphere's collision radius.
         CollisionComponent->InitSphereRadius(15.0f);
         // Set the root component to be the collision component.
@@ -92,17 +95,9 @@ void APlayerProjectile::FireInDirection(const FVector& ShootDirection)
 // Function that is called when the projectile hits something.
 void APlayerProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
-    if (Cast<AMainCharacter>(OtherActor))
-    {
-        Destroy();
-    }
     if (OtherActor != this && OtherComponent->IsSimulatingPhysics())
     {
         OtherComponent->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
     }
-    
-    /*else
-    {
-        Destroy();
-    }*/
 }
+

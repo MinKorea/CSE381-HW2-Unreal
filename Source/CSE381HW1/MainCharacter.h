@@ -28,6 +28,9 @@ protected:
 	TSubclassOf<class APlayerProjectile> ProjectileClass;
 
 public:	
+	bool bHaveBall = false;
+
+
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
