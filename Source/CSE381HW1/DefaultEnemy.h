@@ -37,6 +37,5 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Enemy)
 	bool isDead;
-	
 
 };

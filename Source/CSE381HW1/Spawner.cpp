@@ -40,21 +40,42 @@ void ASpawner::Tick(float DeltaTime)
 void ASpawner::SpawnActor()
 {
 	FVector SpawnLocation = GetActorLocation();
-	FRotator SpawnRotation = GetActorRotation();	
+	FRotator SpawnRotation = GetActorRotation();
+
+	FVector coordinates[30];
 
 	for (int i = 0; i < 30; i++)
 	{
-		int randX = FMath::RandRange(-300, 300);
-		int randY = FMath::RandRange(-300, 300);
-		int randZ = FMath::RandRange(-300, 300);
+		int randX = FMath::RandRange(-9, 9) * 31;
+		int randY = FMath::RandRange(-9, 9) * 31;
+		int randZ = FMath::RandRange(-8, 8) * 31;
 
-		SpawnLocation.X += randX;
-		SpawnLocation.Y += randY;
-		SpawnLocation.Z += randZ;
+		coordinates[i].X = randX;
+		coordinates[i].Y = randY;
+		coordinates[i].Z = randZ;
+
+		for (int j = 0; j < i; j++)
+		{
+			if (coordinates[i].X == coordinates[j].X && coordinates[i].Y == coordinates[j].Y && coordinates[i].Z == coordinates[j].Z)
+			{
+				i--;
+			}
+		}
+
+	}
+
+	for (int i = 0; i < 30; i++)
+	{
+		SpawnLocation.X += coordinates[i].X;
+		SpawnLocation.Y += coordinates[i].Y;
+		SpawnLocation.Z += coordinates[i].Z;
 
 		SpawnLocation.Set(SpawnLocation.X, SpawnLocation.Y, SpawnLocation.Z);
 
-		GetWorld()->SpawnActor<APlayerProjectile>(SpawnLocation, SpawnRotation);
+		APlayerProjectile* SpawnedBall;
+
+		SpawnedBall = GetWorld()->SpawnActor<APlayerProjectile>(SpawnLocation, SpawnRotation);
+		SpawnedBall->ProjectileMovementComponent->Velocity = (SpawnedBall->ProjectileMovementComponent->Velocity * 100) / SpawnedBall->ProjectileMovementComponent->InitialSpeed;
 		SpawnLocation = GetActorLocation();
 	}
 }

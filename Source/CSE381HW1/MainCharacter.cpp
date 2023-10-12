@@ -4,6 +4,7 @@
 #include "MainCharacter.h"
 #include "PlayerProjectile.h"
 
+
 APlayerProjectile* Ball;
 
 // Sets default values
@@ -132,8 +133,11 @@ void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 	if (APlayerProjectile* HitActor = Cast<APlayerProjectile>(OtherActor))
 	{
 		// GEngine->AddOnScreenDebugMessage(-1, 3.0f, FColor::Red, TEXT("Main character hit the projectile"));
+		if (HitActor->owned)
+		{
 
-		if (!bHaveBall)
+		}	
+		else if (!bHaveBall)
 		{
 			bHaveBall = true;
 
@@ -172,7 +176,6 @@ void AMainCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor
 void AMainCharacter::Fire()
 {
 	// Attempt to fire a projectile.
-	// if (ProjectileClass && bHaveBall)
 	if (ProjectileClass && bHaveBall)
 	{
 		// Get the camera transform.
@@ -206,6 +209,7 @@ void AMainCharacter::Fire()
 				// Set the projectile's initial trajectory.
 				FVector LaunchDirection = MuzzleRotation.Vector();
 				Projectile->FireInDirection(LaunchDirection);
+				Projectile->owned = true;
 				bHaveBall = false; // added code
 				Ball->Destroy();   // added code
 			}

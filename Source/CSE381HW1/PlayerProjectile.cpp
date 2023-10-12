@@ -4,7 +4,10 @@
 #include "PlayerProjectile.h"
 #include "MainCharacter.h"
 #include "Engine/Engine.h"
+#include "TimerManager.h"
+#include "Math/UnrealMathUtility.h"
 
+FTimerHandle ProjectileTimerHandle;
 
 // Sets default values
 APlayerProjectile::APlayerProjectile()
@@ -35,6 +38,18 @@ APlayerProjectile::APlayerProjectile()
 
     }
 
+    static ConstructorHelpers::FObjectFinder<USoundCue> SoundCueObject(TEXT("/Script/Engine.SoundCue'/Game/Audios/Sound_BallHit_Cue.Sound_BallHit_Cue'"));
+    
+    if (SoundCueObject.Succeeded())
+    {
+        SoundCue = SoundCueObject.Object;
+
+        // Setup the Audio Component
+        SoundEffect = CreateDefaultSubobject<UAudioComponent>(TEXT("Sound Effect"));
+        SoundEffect->SetupAttachment(RootComponent);  // Attach to root component
+        SoundEffect->SetSound(SoundCue);  // Set the sound cue
+    }
+
     if (!ProjectileMovementComponent)
     {
         // Use this component to drive this projectile's movement.
@@ -51,13 +66,13 @@ APlayerProjectile::APlayerProjectile()
     if (!ProjectileMeshComponent)
     {
         ProjectileMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ProjectileMeshComponent"));
-        static ConstructorHelpers::FObjectFinder<UStaticMesh>Mesh(TEXT("'/Game/Sphere.Sphere'"));
+        static ConstructorHelpers::FObjectFinder<UStaticMesh>Mesh(TEXT("'/Game/Meshes/Sphere.Sphere'"));
         if (Mesh.Succeeded())
         {
             ProjectileMeshComponent->SetStaticMesh(Mesh.Object);
         }
 
-        static ConstructorHelpers::FObjectFinder<UMaterial>Material(TEXT("'/Game/SphereMaterial.SphereMaterial'"));
+        static ConstructorHelpers::FObjectFinder<UMaterial>Material(TEXT("'/Game/Materials/SphereMaterial.SphereMaterial'"));
         if (Material.Succeeded())
         {
             ProjectileMaterialInstance = UMaterialInstanceDynamic::Create(Material.Object, ProjectileMeshComponent);
@@ -67,6 +82,7 @@ APlayerProjectile::APlayerProjectile()
         ProjectileMeshComponent->SetupAttachment(RootComponent);
     }
 
+    
     // Delete the projectile after 3 seconds.
     // InitialLifeSpan = 3.0f;
 
@@ -77,12 +93,22 @@ void APlayerProjectile::BeginPlay()
 {
     Super::BeginPlay();
 
+    // GetWorldTimerManager().SetTimer(ProjectileTimerHandle, this, &APlayerProjectile::DestroyOwnedBall, 5.0f, false, 5.0f);
 }
 
 // Called every frame
 void APlayerProjectile::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
+
+    if (owned)
+    {
+        if (ProjectileMovementComponent->Velocity.Length() < 1.0f)
+        {
+            owned = false;
+            Destroy();
+        }
+    }
 
 }
 
@@ -95,9 +121,20 @@ void APlayerProjectile::FireInDirection(const FVector& ShootDirection)
 // Function that is called when the projectile hits something.
 void APlayerProjectile::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit)
 {
+    // Play the sound
+    SoundEffect->Play();
+
     if (OtherActor != this && OtherComponent->IsSimulatingPhysics())
     {
+        // GEngine->AddOnScreenDebugMessage(-1, 5.0f, FColor::Yellow, TEXT("OnHit Called"));
         OtherComponent->AddImpulseAtLocation(ProjectileMovementComponent->Velocity * 100.0f, Hit.ImpactPoint);
     }
 }
 
+void APlayerProjectile::DestroyOwnedBall()
+{
+    if (owned)
+    {
+        Destroy();
+    }
+}

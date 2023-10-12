@@ -6,6 +6,8 @@
 #include "GameFramework/Actor.h"
 #include "Components/SphereComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
 #include "PlayerProjectile.generated.h"
 
 UCLASS()
@@ -24,6 +26,7 @@ protected:
 
 public:	
 	// True if the projectile is owend by a character
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Projectile")
 	bool owned = false;
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -35,10 +38,11 @@ public:
 	USphereComponent* CollisionComponent;
 
 	// Projectile movement component.
-	UPROPERTY(VisibleAnywhere, Category = Movement)
+	UPROPERTY(VisibleAnywhere,BlueprintreadWrite, Category = Movement)
 	UProjectileMovementComponent* ProjectileMovementComponent;
 
 	// Function that initializes the projectile's velocity in the shoot direction.
+	UFUNCTION(BlueprintCallable)
 	void FireInDirection(const FVector& ShootDirection);
 
 	// Projectile mesh
@@ -53,4 +57,12 @@ public:
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComponent, FVector NormalImpulse, const FHitResult& Hit);
 
+	UPROPERTY(BlueprintReadOnly, Category = "Audio")
+	UAudioComponent* SoundEffect;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Audio")
+	USoundCue* SoundCue;
+	
+
+	void DestroyOwnedBall();
 };
